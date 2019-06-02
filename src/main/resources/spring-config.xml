@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+
+    <!-- ini 配置文件的方式 -->
+    <bean id="iniRealm" class="org.apache.shiro.realm.text.IniRealm">
+        <constructor-arg name="resourcePath" value="classpath:shiro-web.ini" />
+    </bean>
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="iniRealm" />
+    </bean>
+
+
+    <!-- 自定义realm的方式 -->
+<!--    <bean id="myrealm" class="com.shiro.realm.MyRealm2" />
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myrealm" />
+    </bean>-->
+
+    <!-- 如果需要用springmvc注解，spring父容器中需要如下配置， 还需要在子容器中配置 -->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager" />
+    </bean>
+
+    <!-- 父容器扫描排除 controller注解，异常处理类才能有效 -->
+    <context:component-scan base-package="com.shiro">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+
+
+    <!--<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">-->
+    <bean id="shiroFilter" class="com.shiro.filter.MyShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager" />
+        <property name="loginUrl" value="/gologin.html" />
+        <property name="successUrl" value="/index.html" />
+        <property name="unauthorizedUrl" value="/error.html" />
+        <property name="filterChainDefinitions">
+            <value>
+                /login.html=anon
+                /gologin.html=anon
+                /index.html=authc
+                /role.html=authc,roles[admin]
+                /menu/**=authc,roles[admin,test]   <!--,roles[admin],perms[menu:*]-->
+            </value>
+        </property>
+        <property name="filters">
+            <map>
+                <entry key="roles">
+                   <bean class="com.shiro.filter.MyShiroFilter"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
